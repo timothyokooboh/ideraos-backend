@@ -2,16 +2,18 @@ const joi = require("joi")
 const Profile = require("../models/Profile")
 const User = require("../models/User")
 
-// Create Schema for validating request
+//Create Schema for validating request
 const ProfileSchema = joi.object().keys({
-    firstName: joi.string().trim(),
-    lastName: joi.string().trim(),
-    email: joi.string().trim().email(),
-    occupation: joi.string().trim(),
-    location: joi.string().trim(),
+    firstName: joi.string().allow('').optional(),
+    lastName: joi.string().allow('').optional(),
+    email: joi.string().allow('').optional(),
+    occupation: joi.string().allow('').optional(),
+    location: joi.string().allow('').optional(),
     username: joi.string().trim().required(),
+    imageSrc: joi.string().allow('').optional(),
     userId: joi.string().trim().required()
 })
+
 
 // Method for storing profiles
 
@@ -23,7 +25,16 @@ const store = async(req, res) => {
 
     // Get the user that owns the profile
     const user = await User.findById({_id: req.body.userId})
-    const image = req.file ? req.file.path : ""
+
+    /**
+     * check if the request has a file
+     * 
+     * if there is a file, then use it to update the profilePicture
+     * 
+     * if there is no file, then use the current image via req.body.imageSrc
+    **/
+
+    const image = req.file ? req.file.path : req.body.imageSrc
 
     try {
         const postProfile = await Profile.updateOne(
